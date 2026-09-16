@@ -1,0 +1,15 @@
+{
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm run build:vercel-function && pnpm --filter @workspace/imprest-app run build",
+  "outputDirectory": "artifacts/imprest-app/dist/public",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:match*", "destination": "/api" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+:root {
+  /* Imprest's core palette. See design brief §4.1. */
+  --color-paper: #f5f1e8;
+  --color-ink: #221e17;
+  --color-ink-muted: #6e6558;
+  --color-surface: #ffffff;
+  --color-line: #dad3c2;
+  --color-line-strong: #221e17;
+  --color-canvas-dark: #1e1a14;
+  --color-muted-on-dark: #b7ac98;
+
+  /* Brass — the graphical-only tint (rings, icons, large numerals, ≥18px) */
+  --color-brass: #a2672e;
+  /* Brass-deep — the text-safe tint (buttons, links, labels, small text) */
+  --color-accent: #8c5726;
+  --color-accent-hover: #74441e;
+
+  /* Status inks — each paired with its own stamp face, see status-stamp.tsx */
+  --color-positive: #2f5d45;
+  --color-pending: #93650f;
+  --color-pending-deep: #7a5209;
+  --color-negative: #8a3626;
+  --color-info: #2c5e6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  min-width: 320px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    border-color 180ms ease-out,
+    background-color 180ms ease-out,
+    color 180ms ease-out,
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
+}
+
+button:not(:disabled),
+a,
+[role='button']:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 50;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 2px;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.ledger-app {
+  min-height: 100dvh;
+  background: var(--color-paper);
+}
+
+.mono-data {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-rule {
+  border-bottom: 2px solid var(--color-line-strong);
+}
+
+.field-label {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.field-label b {
+  color: var(--color-accent);
+}
+
+.field-input {
+  display: block;
+  margin-top: 8px;
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: 2px;
+  background: var(--color-paper);
+  padding: 0 12px;
+  color: var(--color-ink);
+  font-size: 14px;
+}
+
+.field-input::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 0.8;
+}
+
+.field-input:hover {
+  border-color: var(--color-ink-muted);
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  padding: 3px 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(var(--stamp-tilt, -1.5deg));
+  position: relative;
+}
+
+.stamp::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.stamp--dashed {
+  border-style: dashed;
+}
+
+/* Folio number — the running ledger-page number on every list frame. */
+.folio-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  opacity: 0.65;
+}
+
+/* Counterfoil card — the torn/perforated expense-record component. */
+.counterfoil {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+}
+
+.counterfoil::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 108px;
+  width: 0;
+  border-left: 1.5px dashed var(--color-line);
+  transition: right 180ms ease-out;
+}
+
+.counterfoil:hover::before,
+.counterfoil:focus-within::before {
+  right: 112px;
+}
+
+/* Float Ring — the one recurring "quantity against a boundary" shape. */
+.float-ring circle {
+  transition: stroke-dashoffset 500ms ease-out, stroke 220ms ease-out;
+}
+
+.ledger-row {
+  position: relative;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.ledger-row::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--color-accent);
+  content: "";
+  opacity: 0;
+  transform: scaleY(0.25);
+  transition: opacity 180ms ease-out, transform 180ms ease-out;
+}
+
+.ledger-row:hover::before,
+.ledger-row:focus-within::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.budget-track {
+  height: 4px;
+  overflow: hidden;
+  background: var(--color-line);
+}
+
+.budget-fill {
+  height: 100%;
+  transform-origin: left center;
+  animation: fill-in 650ms ease-out both;
+}
+
+.page-enter {
+  animation: page-in 260ms ease-out both;
+}
+
+.stagger-in {
+  animation: panel-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stagger-in:nth-child(2) { animation-delay: 50ms; }
+.stagger-in:nth-child(3) { animation-delay: 100ms; }
+.stagger-in:nth-child(4) { animation-delay: 150ms; }
+.stagger-in:nth-child(5) { animation-delay: 200ms; }
+
+.approval-wash {
+  animation: approval-wash 280ms ease-out both;
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fill-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes approval-wash {
+  from { background: color-mix(in srgb, currentColor 12%, var(--color-surface)); }
+  to { background: var(--color-surface); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

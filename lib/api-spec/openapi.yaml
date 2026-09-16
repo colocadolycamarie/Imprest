@@ -1,0 +1,569 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: auth
+    description: Authentication
+  - name: health
+    description: Health operations
+  - name: dashboard
+    description: Workspace overview
+  - name: expenses
+    description: Expense records
+  - name: approvals
+    description: Approval queue
+  - name: budgets
+    description: Budget tracking
+paths:
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Create an account and sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Account created; session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "409":
+          description: Email already registered
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed in; session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid email or password
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Sign out and clear the session cookie
+      responses:
+        "204":
+          description: Signed out
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the signed-in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not signed in
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List expenses
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expense list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create an expense draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+  /expenses/{id}:
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get an expense
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      responses:
+        "200":
+          description: Expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Expense not found
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense draft
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+      responses:
+        "200":
+          description: Updated expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+  /expenses/{id}/submit:
+    post:
+      operationId: submitExpense
+      tags: [expenses]
+      summary: Submit an expense for approval
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      responses:
+        "200":
+          description: Submitted expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+  /expenses/{id}/receipt:
+    post:
+      operationId: uploadExpenseReceipt
+      tags: [expenses]
+      summary: Attach a receipt file to an expense
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ReceiptUploadInput"
+      responses:
+        "200":
+          description: Expense with receipt attached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Expense not found
+        "413":
+          description: File too large
+    get:
+      operationId: getExpenseReceipt
+      tags: [expenses]
+      summary: Download the receipt file attached to an expense
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      responses:
+        "200":
+          description: Receipt file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+        "404":
+          description: No receipt attached, or expense not found
+    delete:
+      operationId: deleteExpenseReceipt
+      tags: [expenses]
+      summary: Remove the receipt attached to an expense
+      parameters:
+        - $ref: "#/components/parameters/ExpenseId"
+      responses:
+        "200":
+          description: Expense with receipt removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          description: Expense not found
+  /approvals:
+    get:
+      operationId: listApprovals
+      tags: [approvals]
+      summary: List the approval queue
+      responses:
+        "200":
+          description: Approval queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApprovalItem"
+  /approvals/{id}/decision:
+    post:
+      operationId: decideApproval
+      tags: [approvals]
+      summary: Decide an approval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionInput"
+      responses:
+        "200":
+          description: Updated approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalItem"
+  /budgets:
+    get:
+      operationId: listBudgets
+      tags: [budgets]
+      summary: List budgets
+      responses:
+        "200":
+          description: Budget list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Budget"
+components:
+  parameters:
+    ExpenseId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - department
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        department:
+          type: string
+    RegisterInput:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - department
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        department:
+          type: string
+          minLength: 1
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    ReceiptUploadInput:
+      type: object
+      required:
+        - receipt
+      properties:
+        receipt:
+          type: string
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Expense:
+      type: object
+      required:
+        - id
+        - merchant
+        - category
+        - amount
+        - currency
+        - expenseDate
+        - status
+        - submitter
+        - receipt
+        - description
+      properties:
+        id:
+          type: string
+        merchant:
+          type: string
+        category:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        expenseDate:
+          type: string
+        status:
+          type: string
+        submitter:
+          type: string
+        receipt:
+          type: boolean
+        receiptFilename:
+          type: ["string", "null"]
+        description:
+          type: string
+        costCenter:
+          type: ["string", "null"]
+        policyFlag:
+          type: ["string", "null"]
+    ExpenseInput:
+      type: object
+      required:
+        - merchant
+        - category
+        - amount
+        - currency
+        - expenseDate
+        - description
+      properties:
+        merchant:
+          type: string
+          minLength: 1
+        category:
+          type: string
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        expenseDate:
+          type: string
+        description:
+          type: string
+        costCenter:
+          type: ["string", "null"]
+    ExpenseUpdate:
+      type: object
+      properties:
+        merchant:
+          type: string
+        category:
+          type: string
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        expenseDate:
+          type: string
+        description:
+          type: string
+        costCenter:
+          type: ["string", "null"]
+    ApprovalItem:
+      type: object
+      required:
+        - id
+        - expenseId
+        - merchant
+        - submitter
+        - department
+        - amount
+        - currency
+        - category
+        - submittedAt
+        - sla
+      properties:
+        id:
+          type: string
+        expenseId:
+          type: string
+        merchant:
+          type: string
+        submitter:
+          type: string
+        department:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        submittedAt:
+          type: string
+        sla:
+          type: string
+    ApprovalDecisionInput:
+      type: object
+      required:
+        - decision
+      properties:
+        decision:
+          type: string
+          enum: [APPROVED, REJECTED, CHANGES_REQUESTED]
+        comment:
+          type: ["string", "null"]
+    Budget:
+      type: object
+      required:
+        - id
+        - name
+        - department
+        - spent
+        - limit
+        - period
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        department:
+          type: string
+        spent:
+          type: number
+        limit:
+          type: number
+        period:
+          type: string
+    DashboardSummary:
+      type: object
+      required:
+        - monthToDate
+        - pendingReview
+        - reimbursed
+        - policyExceptions
+        - monthlyChange
+        - recentActivity
+      properties:
+        monthToDate:
+          type: number
+        pendingReview:
+          type: number
+        reimbursed:
+          type: number
+        policyExceptions:
+          type: number
+        monthlyChange:
+          type: number
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+    ActivityItem:
+      type: object
+      required:
+        - id
+        - label
+        - detail
+        - timestamp
+        - tone
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        detail:
+          type: string
+        timestamp:
+          type: string
+        tone:
+          type: string
+

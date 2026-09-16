@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_mn4ymIrRQ2wT1FFGDByWdL7zrsD1",
+      "name": "imprest-api-server",
+      "directory": ".",
+      "orgId": "team_IZV2t5PfL5WsAVxY3ZaqzMWv"
+    }
+  ]
+}

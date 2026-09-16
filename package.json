@@ -1,0 +1,20 @@
+{
+    "name":  "workspace",
+    "version":  "0.0.0",
+    "license":  "MIT",
+    "packageManager":  "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531",
+    "scripts":  {
+                    "preinstall":  "node ./scripts/check-package-manager.mjs",
+                    "build":  "pnpm --filter @workspace/db --filter @workspace/api-zod run build \u0026\u0026 pnpm run typecheck \u0026\u0026 pnpm -r --if-present run build",
+                    "pretypecheck":  "pnpm --filter @workspace/db --filter @workspace/api-zod run build",
+                    "typecheck:libs":  "tsc --build",
+                    "typecheck":  "pnpm --filter @workspace/db --filter @workspace/api-zod run build \u0026\u0026 pnpm run typecheck:libs \u0026\u0026 pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+                    "build:vercel-function":  "esbuild artifacts/api-server/src/app.ts --bundle --platform=node --format=esm --target=node20 --outfile=\"api/index.mjs\" --external:express --external:cors --external:cookie-parser --external:multer --external:jsonwebtoken --external:pino --external:pino-http --external:@vercel/blob --external:pg --external:drizzle-orm --external:drizzle-zod --external:zod --external:bcryptjs --external:dotenv"
+                },
+    "private":  true,
+    "devDependencies":  {
+                            "prettier":  "^3.9.6",
+                            "typescript":  "~5.9.3",
+                            "esbuild":  "0.27.3"
+                        }
+}
